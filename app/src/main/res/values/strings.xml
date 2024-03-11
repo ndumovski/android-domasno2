@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">Domasna_rabota2</string>
+    <string name="searchWords">Search words</string>
+    <string name="searchBox">Enter Twitter search query here</string>
+    <string name="translate">Translate</string>
+    <string name="clear">Clear Words</string>
+    <string name="search">Search</string>
 </resources>
