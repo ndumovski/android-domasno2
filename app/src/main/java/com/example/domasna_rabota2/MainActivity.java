@@ -25,8 +25,20 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Map<String, String> dictionary = new HashMap<>();
+    //private Map<String, String> dictionary = new HashMap<>();
+    private static final Map<String, String> enToMkDictionary = new HashMap<>();
+    private static final Map<String, String> mkToEnDictionary = new HashMap<>();
     private TableLayout resultTableLayout;
+
+    String message = getString(R.string.not_found);
+    TextView notFoundTextView = new TextView(this);
+
+    public void setNotFoundTextView(TextView message) {
+        this.notFoundTextView = message;
+        notFoundTextView.setTextAppearance(R.style.notFoundMessage);
+        notFoundTextView.setGravity(Gravity.CENTER);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,17 +67,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String searchTerm = searchEditText.getText().toString();
-                displaySearchResults(searchTerm, resultTableLayout);
+                displaySearchResults(searchTerm);
             }
         });
 
         // Set onClickListener for clearButton
-        clearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                resultTableLayout.removeAllViews();
-            }
-        });
+        clearButton.setOnClickListener(v -> resultTableLayout.removeAllViews());
     }
 
     private void readDictionary() {
@@ -77,7 +84,8 @@ public class MainActivity extends AppCompatActivity {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(", ");
                 if (parts.length == 2) {
-                    dictionary.put(parts[0], parts[1]);
+                    enToMkDictionary.put(parts[0], parts[1]);
+                    mkToEnDictionary.put(parts[1], parts[0]);
                 }
             }
         } catch (IOException e) {
@@ -91,30 +99,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void displaySearchResults(String searchTerm, TableLayout resultTableLayout) {
-        for (Map.Entry<String, String> entry : dictionary.entrySet()) {
-            if (entry.getKey().toLowerCase().contains(searchTerm.toLowerCase()) ||
-                    entry.getValue().toLowerCase().contains(searchTerm.toLowerCase())) {
-                addResultRow(entry.getKey(), entry.getValue(), resultTableLayout);
-            }
+
+    private void displaySearchResults(String searchTerm) {
+        boolean exists = false;
+
+        // Search in English to Macedonian
+        if (enToMkDictionary.containsKey(searchTerm.toLowerCase())) {
+            addResultRow(enToMkDictionary.get(searchTerm.toLowerCase()));
+            exists = true;
+        }
+
+        // Search in Macedonian to English
+        if (mkToEnDictionary.containsKey(searchTerm.toLowerCase())) {
+            addResultRow(mkToEnDictionary.get(searchTerm.toLowerCase()));
+            exists = true;
+        }
+
+        //If word doesn't exists
+        if (!exists) {
+            addResultRow(getString(R.string.not_found));
         }
     }
-
-    private void addResultRow(String english, String macedonian, TableLayout resultTableLayout) {
+    private void addResultRow(String translation) {
         TableRow row = new TableRow(this);
-        TextView englishTextView = new TextView(this);
-        TextView macedonianTextView = new TextView(this);
+        TextView textView = new TextView(this);
 
-        englishTextView.setText(english);
-        macedonianTextView.setText(macedonian);
+        textView.setText(translation);
+        textView.setTextAppearance(R.style.TranslationTextViewStyle);
+        textView.setGravity(Gravity.CENTER);
 
-        englishTextView.setTextAppearance(R.style.EnglishTextViewStyle);
-        englishTextView.setGravity(Gravity.CENTER);
-        macedonianTextView.setTextAppearance(R.style.MacedonianTextViewStyle);
-        macedonianTextView.setGravity(Gravity.CENTER);
-
-        row.addView(englishTextView);
-        row.addView(macedonianTextView);
+        row.addView(textView);
         resultTableLayout.addView(row);
     }
 }
